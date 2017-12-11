@@ -27,6 +27,8 @@ $(function() {
         it('all url are defined and not empty', function() {
             allFeeds.forEach(function(item) {
                 expect(item.url).not.toBeNull();
+                expect(item.url.length).not.toBe(0);
+
             });
         });
         /* TODO:
@@ -36,6 +38,7 @@ $(function() {
         it('all name are defined and not empty', function() {
             allFeeds.forEach(function(item) {
                 expect(item.name).not.toBeNull();
+                expect(item.name.length).not.toBe(0);
             });
         });
     });
@@ -58,8 +61,8 @@ $(function() {
             $menuIcon = null;
         });
 
-        it('menu is hidden', function() {
-            expect(bodydClass).toEqual('menu-hidden');
+        it('is hidden', function() {
+            expect($body.hasClass('menu-hidden')).toBeTruthy();
         });
         /* TODO:
          * 写一个测试用例保证当菜单图标被点击的时候菜单会切换可见状态。这个
@@ -71,9 +74,11 @@ $(function() {
         it('click menu icon hidding can switch', function() {
 
             $menuIcon.trigger("click");
-            expect($body.hasClass('menu-hidden')).toBeFalsy();
+            console.log($body.hasClass('menu-hidden'));
+            expect($body.hasClass('menu-hidden')).toBe(false);
             $menuIcon.trigger("click");
-            expect($body.hasClass('menu-hidden')).toBeTruthy();
+            console.log($body.hasClass('menu-hidden'));
+            expect($body.hasClass('menu-hidden')).toBe(true);
         });
 
     });
@@ -88,43 +93,68 @@ $(function() {
          */
         //测试异步调用时done参数
         beforeEach(function(done) {
-            setTimeout(function() {
-                loadFeed(0, done); //异步函数loadFeed在请求成功的回调函数里调用done函数
-            }, 1000);
-        });
-        it("There is a loadFeed function, it works", function(done) {
-            expect($(".feed .entry").length).not.toBe(0);
-            done();
-        });
-        afterEach(function(done) {
-            done();
+            loadFeed(0, function() {
+                done();
+            });
         }, 1000);
+
+        it("There is a loadFeed function, it works", function() {
+            expect($(".feed .entry").length).not.toBe(0);
+        });
 
     });
     /* TODO: 写一个叫做 "New Feed Selection" 的测试用例 */
     describe('New Feed Selection', function() {
+
+        /*        var content;
+                var originalTimeout;
+                beforeEach(function(done) {
+
+                    content = $('.feed').html();
+                    for (var i = allFeeds.length - 1; i >= 0; i--) {
+                        loadFeed(3, done);
+                    }
+
+                });
+
+                it('The content changed', function(done) {
+                    expect(content).not.toBe($('.feed').html());
+                    done();
+                });
+                afterEach(function(done) {
+                done();
+                }, 1000);
+
+                });*/
+
+
         /* TODO:
          * 写一个测试保证当用 loadFeed 函数加载一个新源的时候内容会真的改变。
          * 记住，loadFeed() 函数是异步的。
          */
-        var content;
-        var originalTimeout;
+
+        var content1, content2;
+
         beforeEach(function(done) {
-            //调用函数loadFeed(),取不同的
-            content = $('.feed').html();
-            for (var i = allFeeds.length - 1; i >= 0; i--) {
-                loadFeed(3, done); // 异步函数loadFeed在请求成功的回调函数里调用done函数
-            }
+            loadFeed(1, function() { // 匿名函数，当loadFeed返回数据后执行
+                content1 = $('.feed').html();
+                console.log(content1) // 在这里获取内容1
+                    // 获取完毕后开始请求新的数据
+                loadFeed(0, function() {
+                    content2 = $('.feed').html();
+                    console.log(content2) // 获取内容2
+                        // 执行done，通知下方it开始测试（因为到现在为止，两次请求的数据才真正全部返回）
+                    done()
+                });
+            });
+        }, 20000);
 
+        it("load container1", function() {
+            expect(content1).not.toBe(content2);
         });
-
-        it('The content changed', function(done) {
-            expect(content).not.toBe($('.feed').html());
-            done();
-        });
-        afterEach(function(done) {
-            done();
-        }, 1000);
 
     });
+
+
+
 }());
